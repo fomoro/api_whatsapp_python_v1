@@ -7,7 +7,7 @@ def hola():
     return render_template("holaflask.html")
 
 
-@app.get("/")
+@app.get("/mensaje")
 def home():
     return {"msg": "OK - funcionando"}
 
