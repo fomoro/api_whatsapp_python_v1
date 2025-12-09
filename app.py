@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -60,21 +60,37 @@ def recibir_mensaje():
         "contenido": texto
     }
 
-
-TOKEN_ANDERCODE = "wolfan_12345"
-
 @app.route('/webhook', methods=['GET','POST'])
 def webhook():
     if request.method == 'GET':
-        #challenge = verificar_token(request)
-        #return challenge
-        return "GET recibido"
+        challenge = verificar_token(request)
+        return challenge
     elif request.method == 'POST':
         #reponse = recibir_mensajes(request)
         #return reponse
-        return "POST recibido"
+        return "Evento recibido", 200
     
+def verificar_token(req):
+    try:
+        accessToken = "wolfan_12345" 
+        token = req.args.get('hub.verify_token')
+        challenge = req.args.get('hub.challenge')
 
+        if token is not None and challenge is not None and token == accessToken:
+            return challenge, 200
+        else:
+            return jsonify({'error':'Token Invalido'}),401
+    except Exception as e:
+        return str(e), 400
+
+def recibir_mensajes(req):
+    try:
+        req = request.get_json()
+        print(req)
+        return "Evento recibido", 200
+    except Exception as e:
+        return str(e), 400
+    
 # ---------------------------------------------------------
 # Inicialización y datos de prueba
 # ---------------------------------------------------------
