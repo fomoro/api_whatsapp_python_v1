@@ -66,10 +66,9 @@ def webhook():
         challenge = verificar_token(request)
         return challenge
     elif request.method == 'POST':
-        #reponse = recibir_mensajes(request)
-        #return reponse
-        return "Evento recibido", 200
-    
+        reponse = recibir_mensajes(request)
+        return reponse
+        
 def verificar_token(req):
     try:
         accessToken = "wolfan_12345" 
@@ -86,8 +85,7 @@ def verificar_token(req):
 def recibir_mensajes(req):
     try:
         req = request.get_json()
-        print(req)
-        return "Evento recibido", 200
+        return jsonify({'mensaje':req}),200
     except Exception as e:
         return str(e), 400
     
