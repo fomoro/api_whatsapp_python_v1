@@ -84,8 +84,15 @@ def verificar_token(req):
 
 def recibir_mensajes(req):
     try:
-        req = request.get_json()
-        return jsonify({'mensaje':req}),200
+        body = request.get_json()
+                
+        entry = body['entry'][0]
+        changes = entry['changes'][0]
+        value = changes['value']
+        message = value['messages'][0]
+        number = message['from']
+
+        return jsonify({'mensaje':message}),200
     except Exception as e:
         return str(e), 400
     
