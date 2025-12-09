@@ -60,6 +60,21 @@ def recibir_mensaje():
         "contenido": texto
     }
 
+
+TOKEN_ANDERCODE = "wolfan_12345"
+
+@app.route('/webhook', methods=['GET','POST'])
+def webhook():
+    if request.method == 'GET':
+        #challenge = verificar_token(request)
+        #return challenge
+        return "GET recibido"
+    elif request.method == 'POST':
+        #reponse = recibir_mensajes(request)
+        #return reponse
+        return "POST recibido"
+    
+
 # ---------------------------------------------------------
 # Inicialización y datos de prueba
 # ---------------------------------------------------------
