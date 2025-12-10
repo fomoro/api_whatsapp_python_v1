@@ -73,24 +73,21 @@ def verificar_token(req):
 
 def recibir_mensajes(req):
     try:
-        body = request.get_json()
-                
-        entry = body['entry'][0]
-        changes = entry['changes'][0]
-        value = changes['value']
-        message = value['messages'][0]
-        number = message['from']
-        
+        data = request.get_json() or {}
+
+        message = (data.get("entry", [{}])[0].get("changes", [{}])[0].get("value", {}).get("messages", [{}])[0])
+
+        number = message.get("from")
         text = get_text_user(message)
-        
-        guardar_mensaje(jsonify({'numero':number,'texto':text}))
-        
-        enviar_mensajes_whatsapp(text,number)
-        
-        return jsonify({'numero':number,'texto':text}),200
+
+        if number or text:
+            guardar_mensaje(f"Numero: {number} | Mensaje: {text}")
+            enviar_mensajes_whatsapp(text, number)
+
+        return jsonify({"numero": number, "texto": text}), 200
 
     except Exception as e:
-        return str(e), 400
+        return jsonify({"error": str(e)}), 400
     
 def get_text_user(message):
     if "type" not in message:
@@ -208,7 +205,7 @@ def enviar_mensajes_whatsapp(texto,number):
             "type": "text",
             "text": {
                 "preview_url": False,
-                "body": "🚀 Hola, visita mi web planesenbogota.com para más información.\n \n📌Por favor, ingresa un número #️⃣ para recibir información.\n \n1️⃣. Información del Curso. ❔\n2️⃣. Ubicación del local. 📍\n3️⃣. Enviar temario en PDF. 📄\n4️⃣. Audio explicando curso. 🎧\n5️⃣. Video de Introducción. ⏯️\n6️⃣. Hablar con AnderCode. 🙋‍♂️\n7️⃣. Horario de Atención. 🕜 \n0️⃣. Regresar al Menú. 🕜"
+                "body": "🚀 Hola, visita mi web planesenbogota.com para más información.\n \n📌Por favor, ingresa un número #️⃣ para recibir información.\n \n1️⃣. Información del Curso. ❔\n2️⃣. Ubicación del local. 📍\n3️⃣. Enviar temario en PDF. 📄\n4️⃣. Audio explicando curso. 🎧\n5️⃣. Video de Introducción. ⏯️\n6️⃣. Hablar con chatico. 🙋‍♂️\n7️⃣. Horario de Atención. 🕜 \n0️⃣. Regresar al Menú. 🕜"
             }
         }
     elif "boton" in texto:
@@ -362,7 +359,7 @@ def enviar_mensajes_whatsapp(texto,number):
             "type": "text",
             "text": {
                 "preview_url": False,
-                "body": "🚀 Hola, visita mi web planesenbogota.com para más información.\n \n📌Por favor, ingresa un número #️⃣ para recibir información.\n \n1️⃣. Información del Curso. ❔\n2️⃣. Ubicación del local. 📍\n3️⃣. Enviar temario en PDF. 📄\n4️⃣. Audio explicando curso. 🎧\n5️⃣. Video de Introducción. ⏯️\n6️⃣. Hablar con Chatico. 🙋‍♂️\n7️⃣. Horario de Atención. 🕜 \n0️⃣. Regresar al Menú. 🕜"
+                "body": "🚀 Hola, visita mi web planesenbogota.com para más información.\n \n📌Por favor, ingresa un número #️⃣ para recibir información.\n \n1️⃣. Información del Curso. ❔\n2️⃣. Ubicación del local. 📍\n3️⃣. Enviar temario en PDF. 📄\n4️⃣. Audio explicando curso. 🎧\n5️⃣. Video de Introducción. ⏯️\n6️⃣. Hablar con chatico. 🙋‍♂️\n7️⃣. Horario de Atención. 🕜 \n0️⃣. Regresar al Menú. 🕜"
             }
         }
 
