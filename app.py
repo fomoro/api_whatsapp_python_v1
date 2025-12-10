@@ -83,6 +83,8 @@ def recibir_mensajes(req):
         
         text = get_text_user(message)
         
+        guardar_mensaje(jsonify({'numero':number,'texto':text}))
+        
         enviar_mensajes_whatsapp(text,number)
         
         return jsonify({'numero':number,'texto':text}),200
