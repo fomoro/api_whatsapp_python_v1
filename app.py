@@ -91,11 +91,35 @@ def recibir_mensajes(req):
         value = changes['value']
         message = value['messages'][0]
         number = message['from']
-
-        return jsonify({'mensaje':message}),200
+        
+        text = GetTextUser(message)
+        
+        
+        return jsonify({'numero':number,'texto':text}),200
     except Exception as e:
         return str(e), 400
     
+def GetTextUser(message):
+    text = ""
+    typeMessage = message["type"]
+
+    if typeMessage == "text":
+        text = (message["text"])["body"]
+    elif typeMessage == "interactive":
+        interactiveObject = message["interactive"]
+        typeInteractive = interactiveObject["type"]
+
+        if typeInteractive == "button_reply":
+            text = (interactiveObject["button_reply"])["title"]
+        elif typeInteractive == "list_reply":
+            text = (interactiveObject["list_reply"])["title"]
+        else:
+            print("sin mensaje")
+    else:
+        print("sin mensaje")
+
+    return text
+
 # ---------------------------------------------------------
 # Inicialización y datos de prueba
 # ---------------------------------------------------------
