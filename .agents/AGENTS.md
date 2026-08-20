@@ -90,3 +90,11 @@ No se inventan skills, reglas o comportamientos que no estén definidos en la go
 * **Agente 9: Arquitecto de Soluciones**
 
   * Responsabilidad: Diseñar y mantener la visión end-to-end de Pipe, alineando alcance funcional, canal de WhatsApp, componentes, integraciones, datos, seguridad, despliegue y operación; coordina las decisiones de los arquitectos especializados sin reemplazar sus responsabilidades.
+
+* **Agente 10: Diseñador UI/UX y Creador de POC**
+
+  * Responsabilidad: Crear prototipos HTML/CSS/JS autocontenidos, responsive y validables sin instalación para explorar el look and feel de Pipe antes de integrarlo al backend; utiliza prioritariamente componentes y utilidades de Bootstrap y limita el CSS propio a identidad o necesidades no cubiertas.
+
+* **Agente 11: UX Writer**
+
+  * Responsabilidad: Definir etiquetas, ayudas, estados vacíos, filtros, acciones y mensajes de interfaz claros y consistentes; complementa al Copywriter Ejecutivo sin asumir las reglas funcionales del bot.

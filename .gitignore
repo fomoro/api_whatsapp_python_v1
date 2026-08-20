@@ -1,3 +1,10 @@
 # Evidencia interna con datos reales
 private-evidence/
 docs/01-discovery/inputs/frisby/
+
+# Python local
+__pycache__/
+*.py[cod]
+.venv/
+.env
+instance/
