@@ -1,90 +1,92 @@
-from flask import Flask, render_template
+import os
+
+from flask import Flask, jsonify, render_template, request
+from dotenv import load_dotenv
 
 
-app = Flask(__name__)
+load_dotenv()
+
+from backend.infrastructure.database import init_db, save_log
+from backend.infrastructure.whatsapp import (
+    WhatsAppAPIError,
+    WhatsAppConfigurationError,
+    verify_webhook_token,
+)
+from backend.services.message_service import build_conversations, process_webhook
 
 
-def load_demo_conversations() -> list[dict]:
-    """Return isolated sample data until a real message repository is connected."""
-    return [
-        {
-            "id": "c1",
-            "name": "Cliente 0101",
-            "phone": "+57 300 000 0101",
-            "messages": [
-                {"direction": "inbound", "text": "Hola", "time": "09:14", "status": "Recibido"},
-                {
-                    "direction": "outbound",
-                    "text": "Hola, ¿cómo estás? Bienvenido a Pipe.\n\nEscribe 0 para ver el menú de opciones.",
-                    "time": "09:14",
-                    "status": "Entregado",
-                },
-                {"direction": "inbound", "text": "0", "time": "09:15", "status": "Recibido"},
-                {
-                    "direction": "outbound",
-                    "text": (
-                        "Selecciona una opción para continuar:\n\n"
-                        "1. Información\n2. Ubicación\n3. Documento\n4. Audio\n"
-                        "5. Video\n6. Hablar con una persona\n7. Horario"
-                    ),
-                    "time": "09:15",
-                    "status": "Entregado",
-                },
-            ],
-        },
-        {
-            "id": "c2",
-            "name": "Cliente 0202",
-            "phone": "+57 300 000 0202",
-            "messages": [
-                {"direction": "inbound", "text": "2", "time": "08:46", "status": "Recibido"},
-                {
-                    "direction": "outbound",
-                    "text": "Esta es la ubicación registrada para el punto de atención.",
-                    "time": "08:46",
-                    "status": "Entregado",
-                },
-            ],
-        },
-        {
-            "id": "c3",
-            "name": "Cliente 0303",
-            "phone": "+57 300 000 0303",
-            "messages": [
-                {
-                    "direction": "inbound",
-                    "text": "Quiero hablar con una persona",
-                    "time": "Ayer",
-                    "status": "Recibido",
-                },
-                {
-                    "direction": "outbound",
-                    "text": "Registramos tu solicitud. Una persona continuará la conversación.",
-                    "time": "Ayer",
-                    "status": "Enviado",
-                },
-            ],
-        },
-        {
-            "id": "c4",
-            "name": "Cliente 0404",
-            "phone": "+57 300 000 0404",
-            "messages": [
-                {"direction": "inbound", "text": "Horario", "time": "Ayer", "status": "Recibido"}
-            ],
-        },
-    ]
+def create_app():
+    flask_app = Flask(__name__)
+    init_db(flask_app)
+    register_routes(flask_app)
+    return flask_app
 
 
-@app.get("/")
-def messages():
-    return render_template("messages.html", conversations=load_demo_conversations())
+def register_routes(flask_app):
+    @flask_app.get("/")
+    def messages():
+        return render_template(
+            "messages.html",
+            conversations=build_conversations(),
+        )
+
+    @flask_app.get("/health")
+    def health():
+        return {"status": "ok"}
+
+    @flask_app.get("/mensaje")
+    def message_status():
+        return {"msg": "OK - funcionando"}
+
+    @flask_app.post("/mensaje")
+    def receive_manual_message():
+        data = request.get_json(silent=True) or {}
+        text = data.get("texto", "")
+        if text:
+            save_log(text)
+        return {"status": "recibido", "contenido": text}
+
+    @flask_app.get("/webhook")
+    def verify_webhook():
+        token = request.args.get("hub.verify_token")
+        challenge = request.args.get("hub.challenge")
+        if challenge is None:
+            return jsonify({"error": "Falta el parámetro de validación"}), 400
+
+        try:
+            valid = verify_webhook_token(token)
+        except WhatsAppConfigurationError:
+            flask_app.logger.exception("Configuración incompleta del webhook")
+            return jsonify({"error": "Webhook no configurado"}), 503
+
+        if not valid:
+            return jsonify({"error": "Token inválido"}), 401
+        return challenge, 200
+
+    @flask_app.post("/webhook")
+    def receive_webhook():
+        payload = request.get_json(silent=True) or {}
+        try:
+            result = process_webhook(payload)
+        except WhatsAppConfigurationError:
+            flask_app.logger.exception("Configuración incompleta de WhatsApp")
+            return jsonify({"error": "Canal de WhatsApp no configurado"}), 503
+        except WhatsAppAPIError:
+            flask_app.logger.exception("WhatsApp rechazó el mensaje")
+            return jsonify({"error": "WhatsApp rechazó el mensaje"}), 502
+        except Exception:
+            flask_app.logger.exception("No fue posible procesar el webhook")
+            return jsonify({"error": "No fue posible procesar el mensaje"}), 400
+
+        return jsonify(result), 200
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        host=os.getenv("HOST", "0.0.0.0"),
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG", "false").lower() == "true",
+    )

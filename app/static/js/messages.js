@@ -32,10 +32,16 @@ function visibleConversations() {
   });
 }
 
+function needsAttention(message) {
+  if (message.direction === 'inbound') return true;
+  return !/^(2\d\d)\b/.test(message.status)
+    && !['Enviado', 'Entregado'].includes(message.status);
+}
+
 function renderMetrics() {
   const messages = conversations.flatMap(conversation => conversation.messages);
   const pending = conversations.filter(
-    conversation => conversation.messages.at(-1)?.direction === 'inbound'
+    conversation => needsAttention(conversation.messages.at(-1))
   ).length;
   const values = [
     [conversations.length, 'Conversaciones'],
@@ -69,7 +75,7 @@ function renderConversationList() {
 
   conversationList.innerHTML = visible.map(conversation => {
     const last = conversation.messages.at(-1);
-    const pending = last.direction === 'inbound';
+    const pending = needsAttention(last);
 
     return `
       <button class="conversation-button list-group-item list-group-item-action border-0 rounded-3 p-3 ${conversation.id === selectedId ? 'active' : ''}" type="button" data-id="${escapeHtml(conversation.id)}">
@@ -127,7 +133,7 @@ function renderSelectedConversation() {
   }
 
   messageStream.innerHTML = `
-    <div class="small text-center text-pipe-muted mb-4">Hoy</div>
+    <div class="small text-center text-pipe-muted mb-4">Historial de mensajes</div>
     ${filteredMessages.map(message => `
       <div class="d-flex mb-3 ${message.direction === 'outbound' ? 'justify-content-end message-out' : 'message-in'}">
         <div class="message-bubble border-0 rounded-4 px-3 py-2">

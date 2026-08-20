@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from database import db, init_db, Log, guardar_mensaje
+from app.database_old import db, init_db, Log, guardar_mensaje
 
 from datetime import datetime
 
