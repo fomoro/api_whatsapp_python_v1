@@ -1,3 +1,18 @@
+# POC operativo preservado
+
+Esta carpeta contiene el POC funcional existente. Su código interno se conserva sin refactorización para no alterar su comportamiento.
+
+Desde la raíz del repositorio:
+
+```bash
+py -m pip install -r poc/requirements.txt
+py run_poc.py
+```
+
+`run_poc.py` mantiene externamente la compatibilidad con la importación histórica `old.database`. Las instrucciones siguientes pertenecen al README original del POC.
+
+---
+
 Aquí tienes el **README.md** completo, claro y listo para pegar en tu repo.
 
 ---
