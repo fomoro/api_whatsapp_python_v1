@@ -386,7 +386,7 @@ def enviar_peticion_api_whatsapp(data):
     connection = http.client.HTTPSConnection("graph.facebook.com")
 
     try:
-        connection.request("POST","/v25.0/667502843118213/messages", data, headers)
+        connection.request("POST","/v22.0/667502843118213/messages", data, headers)
         response = connection.getresponse()
         response_body = response.read().decode("utf-8", errors="replace")
         try:
