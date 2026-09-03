@@ -74,6 +74,10 @@ def verificar_token(req):
 def recibir_mensajes(req):
     try:
         data = request.get_json() or {}
+        guardar_mensaje(json.dumps({
+            "evento": "webhook_recibido",
+            "detalle": data
+        }, ensure_ascii=False))
 
         message = (data.get("entry", [{}])[0].get("changes", [{}])[0].get("value", {}).get("messages", [{}])[0])
 
@@ -87,6 +91,11 @@ def recibir_mensajes(req):
         return jsonify({"numero": number, "texto": text}), 200
 
     except Exception as e:
+        guardar_mensaje(json.dumps({
+            "evento": "error_webhook",
+            "tipo": type(e).__name__,
+            "detalle": str(e)
+        }, ensure_ascii=False))
         return jsonify({"error": str(e)}), 400
     
 def get_text_user(message):
@@ -379,6 +388,11 @@ def enviar_peticion_api_whatsapp(data):
     try:
         connection.request("POST","/v22.0/667502843118213/messages", data, headers)
         response = connection.getresponse()
+        response_body = response.read().decode("utf-8", errors="replace")
+        try:
+            response_detail = json.loads(response_body)
+        except json.JSONDecodeError:
+            response_detail = response_body
         #print(response.status, response.reason)
 
         payload = json.loads(data)
@@ -393,7 +407,8 @@ def enviar_peticion_api_whatsapp(data):
             "to": payload.get("to"),
             "content": content,
             "status": response.status,
-            "reason": response.reason
+            "reason": response.reason,
+            "respuesta_meta": response_detail
         }
 
         guardar_mensaje(json.dumps(log_msg, ensure_ascii=False))
